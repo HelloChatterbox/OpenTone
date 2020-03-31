@@ -19,7 +19,6 @@ import pyshorteners as pyshort
 
 
 def tiny_link(url):
-    pyshort.Shortener()
     tinyurl = pyshort.Shortener().tinyurl.short(url)
     # The consant prefix in the TinyURL is standard and can be
     # removed altogether, and added in the receiving station
