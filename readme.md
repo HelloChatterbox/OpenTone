@@ -13,6 +13,7 @@ pip install opentone
 
 Here is a clone of [GoogleTone](https://chrome.google.com/webstore/detail/google-tone/nnckehldicaciogcbchegobnafnjkcne?hl=en)
 
+
 ```python
 from opentone import ToneGenerator, ToneDecoder
 import pyshorteners as pyshort
@@ -39,4 +40,12 @@ decoded_url = decoder.decode_wave(wave_file)
 assert decoded_url == url
 
 print("http://tinyurl.com/" + decoded_url)
+```
+
+
+NOTE: Input wave files should be 8khz mono
+
+convert files with
+```bash
+ffmpeg -i some_file.mp3 -acodec pcm_s16le -ac 1 -ar 8000 out.wav
 ```
