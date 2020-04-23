@@ -32,12 +32,13 @@ class ToneGenerator:
                           'F': [frequencyR[3], frequencyC[2]]
                           }
 
-    def __init__(self, duration=100):
+    def __init__(self, duration=100, pause=500):
         self.duration = duration
+        self.pause = pause
 
     @staticmethod
     def hex_encode(text_to_encode):
-        hex_encoded = text_to_encode.encode().hex()
+        hex_encoded = text_to_encode.encode(encoding="ascii").hex()
         return hex_encoded
 
     def _generate_raw_data(self, text_to_encode):
@@ -62,15 +63,24 @@ class ToneGenerator:
             f.writeframes(struct.pack('i', i))
         f.close()
 
-    def generate_tone(self, f1, f2, _duration_in_ms):
+    def _get_silence(self, duration_in_ms=None):
+        if duration_in_ms is None:
+            duration_in_ms = self.pause
+        number_of_samples = int(self.SAMPLE_RATE * duration_in_ms / 1000)
+        result = list()
+        for i in range(number_of_samples):
+            result.append(0)
+        return result
+
+    def generate_tone(self, f1, f2, duration_in_ms):
         """
         Generates a single value representing a sample of two combined frequencies.
         :param f1:
         :param f2:
-        :param _duration_in_ms:
+        :param duration_in_ms:
         :return:
         """
-        number_of_samples = int(self.SAMPLE_RATE * _duration_in_ms / 1000)
+        number_of_samples = int(self.SAMPLE_RATE * duration_in_ms / 1000)
         scale = 32767  # signed int / 2
 
         result = list()
@@ -78,11 +88,15 @@ class ToneGenerator:
             p = i * 1.0 / self.SAMPLE_RATE
             result.append(int((math.sin(p * f1 * math.pi * 2) +
                                math.sin(p * f2 * math.pi * 2)) / 2 * scale))
-        return result
+        return result + self._get_silence()
 
     def encode_to_wave(self, text_to_encode, file_path):
         hex_encoded = self.hex_encode(text_to_encode)
         raw_data = self._generate_raw_data(hex_encoded)
+        self._save_wave_file(raw_data, file_path)
+
+    def dtmf_to_wave(self, dtmf, file_path):
+        raw_data = self._generate_raw_data(str(dtmf))
         self._save_wave_file(raw_data, file_path)
 
 
@@ -272,7 +286,7 @@ class ToneDecoder:
 
     @staticmethod
     def hex_decode(hex_encoded):
-        hex_decoded = bytes.fromhex(hex_encoded).decode('utf-8')
+        hex_decoded = bytes.fromhex(hex_encoded).decode('ascii')
         return hex_decoded
 
 
